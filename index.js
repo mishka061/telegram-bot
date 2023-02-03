@@ -5,10 +5,18 @@ const token = '6173931314:AAFF6a-OMv7RSRxFEPU4C8cXES5cJGuITes'
 
 const bot = new TelegramApi(token, {polling:true})
 
+
+//создадим объект,который как ключи содержит id чата,а как значение- загаданное ботом число
+const chats = {}
+
+
+
+
 const start = () => {
     bot.setMyCommands([
         {command:'/start', description: 'Начальное приветствие'},
         {command:'/info', description: 'Получить информацию о пользователе'},
+        {command:'/game', description: 'Игра угадай цифру'},
     ])
 
     bot.on('message', async msg => {
@@ -22,7 +30,10 @@ const start = () => {
             return  bot.sendMessage(chatId, `Тебя зовут ${msg.from.first_name} ${msg.from.last_name}`)
         }
         if (text === '/game'){
-            return  bot.sendMessage(chatId, `Сейчас я загадаю цифру от 0 до 9, а ты должен ее угадать!`)
+            await  bot.sendMessage(chatId, `Сейчас я загадаю цифру от 0 до 9, а ты должен ее угадать!`);
+            const randomNumber = Math.floor(Math.random() * 10);
+            chats[chatId] = randomNumber
+            return bot.sendMessage(chatId,'Отгадывай');
         }
 
         return bot.sendMessage(chatId, 'Я тебя не понимаю, попробуй еще раз!')
