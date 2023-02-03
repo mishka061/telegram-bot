@@ -10,7 +10,6 @@ const bot = new TelegramApi(token, {polling:true})
 const chats = {}
 
 
-//Массив кнопок
 const gameOptions = {
     reply_markup: JSON.stringify({
         inline_keyboard: [
@@ -21,6 +20,22 @@ const gameOptions = {
             ]
 
     })
+}
+
+const againOptions = {
+    reply_markup: JSON.stringify({
+        inline_keyboard: [
+            [{text: 'Играть еще раз', callback_data: '/again'}],
+        ]
+
+    })
+}
+
+const startGame = async (chatId) => {
+    await  bot.sendMessage(chatId, `Сейчас я загадаю цифру от 0 до 9, а ты должен ее угадать!`);
+    const randomNumber = Math.floor(Math.random() * 10);
+    chats[chatId] = randomNumber
+    await bot.sendMessage(chatId,'Отгадывай', gameOptions);
 }
 
 
@@ -42,19 +57,25 @@ const start = () => {
             return  bot.sendMessage(chatId, `Тебя зовут ${msg.from.first_name} ${msg.from.last_name}`)
         }
         if (text === '/game'){
-            await  bot.sendMessage(chatId, `Сейчас я загадаю цифру от 0 до 9, а ты должен ее угадать!`);
-            const randomNumber = Math.floor(Math.random() * 10);
-            chats[chatId] = randomNumber
-            return bot.sendMessage(chatId,'Отгадывай', gameOptions);
+            return startGame(chatId)
+
         }
 
         return bot.sendMessage(chatId, 'Я тебя не понимаю, попробуй еще раз!')
     })
-    bot.on('callback_query', msg => {
+    bot.on('callback_query', async msg => {
         const data = msg.data;
         const chatId = msg.message.chat.id;
+        if (data === '/again'){
+           return  startGame(chatId)
 
-        bot.sendMessage(chatId, `Ты выбрал цифру ${data}`)
+        }
+        if(data === chats[chatId]) {
+            return bot.sendMessage(chatId, `Поздравляю, ты угадал цифру ${chats[chatId]}`, againOptions)
+        }else {
+            return bot.sendMessage(chatId, `К сожалению ты не угадал, бот загадал цифру ${chats[chatId]}`, againOptions)
+        }
+
     })
 
 }
